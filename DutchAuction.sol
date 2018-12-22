@@ -1,18 +1,23 @@
-pragma solidity ^0.5.2;
+pragma solidity >=0.4.0 <0.6.0;
+//pragma solidity ^0.5.2;
 
 contract DutchAuction {
-    address payable author;
-    uint decEach;
-    uint decStep;
-    uint startPrice;
-    uint minPrice;
-    uint actualPrice = 10e20;
+    address payable public author;
+    uint public decEach;
+    uint public decStep;
+    uint public startPrice;
+    uint public minPrice;
+    uint actualPrice = 10e50;
     uint winBidAmount = 0;
-    address payable winnerAddress;
+    address payable public winnerAddress;
     uint actualWinnerAmount;
     uint startBlock;
     
     constructor(address payable addr, uint _startPrice, uint _decEach, uint _decStep, uint _minPrice) payable public {
+        require(
+            _startPrice * _decEach * _decStep * _minPrice != 0,
+            "You may input no zero-value arguments."
+        );
         require(
             _startPrice >= _minPrice,
             "Start price can't be less than minimum price."
@@ -28,7 +33,7 @@ contract DutchAuction {
     
     function close() public {
         require(
-            isActive() == false,
+            isActive() == false || isWinner() == true,
             "You can't close active auction."
         );
         require(
@@ -53,7 +58,7 @@ contract DutchAuction {
     }
     
     function getPrice() public returns (uint) {
-        actualPrice = startPrice - (startBlock - block.number) / decEach * decStep; 
+        actualPrice = startPrice - (block.number - startBlock) / decEach * decStep; 
         return actualPrice;
     }
     
